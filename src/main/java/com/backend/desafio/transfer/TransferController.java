@@ -28,7 +28,7 @@ public class TransferController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         } catch (ForbiddenTransferException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-        } catch (InsufficientBalanceException | InvalidPayerTypeException | InvalidIdException ex) {
+        } catch (InsufficientBalanceException | InvalidPayerTypeException | InvalidIdException | NullPointerException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
