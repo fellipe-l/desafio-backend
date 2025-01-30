@@ -4,7 +4,7 @@ import com.backend.desafio.exception.ForbiddenTransferException;
 import com.backend.desafio.exception.InsufficientBalanceException;
 import com.backend.desafio.exception.InvalidIdException;
 import com.backend.desafio.exception.InvalidPayerTypeException;
-import com.backend.desafio.notification.NotificationService;
+import com.backend.desafio.notification.RabbitMqProducer;
 import com.backend.desafio.user.User;
 import com.backend.desafio.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +17,12 @@ import java.math.BigDecimal;
 @Service
 public class TransferService {
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    private final RabbitMqProducer producer;
 
     @Autowired
-    public TransferService(UserRepository userRepository, NotificationService notificationService) {
+    public TransferService(UserRepository userRepository, RabbitMqProducer producer) {
         this.userRepository = userRepository;
-        this.notificationService = notificationService;
+        this.producer = producer;
     }
 
     private boolean authorizeTransfer() {
@@ -43,7 +43,6 @@ public class TransferService {
                 payerName +
                 " no valor de R$" +
                 value;
-
     }
 
     public void transfer(BigDecimal value, Long payerId, Long payeeId) throws ForbiddenTransferException, InsufficientBalanceException, InvalidIdException, InvalidPayerTypeException {
@@ -65,7 +64,7 @@ public class TransferService {
                     payer.getBalance().subtract(value),
                     payee.getBalance().add(value)
             );
-            notificationService.notifyPayee(generateNotificationMessage(value, payer.getFullName()));
+            producer.produceMessage(generateNotificationMessage(value, payer.getFullName()));
         } else throw new ForbiddenTransferException("This transfer hasn't been authorized.");
     }
 }

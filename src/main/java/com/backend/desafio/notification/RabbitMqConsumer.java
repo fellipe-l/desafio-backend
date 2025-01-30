@@ -1,15 +1,18 @@
 package com.backend.desafio.notification;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 @Component
 public class RabbitMqConsumer {
-    public void consumeMessage(String message) {
-        String uri = "https://util.devi.tools/api/v1/notify";
-        Notification request = new Notification(message);
-        RestTemplate restTemplate = new RestTemplate();
+    private final NotificationService notificationService;
 
-        restTemplate.postForObject(uri, request, Void.class);
+    @Autowired
+    public RabbitMqConsumer(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public void consumeMessage(String message) {
+        notificationService.notifyPayee(message);
     }
 }
