@@ -26,12 +26,23 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String fullName, String document, String email, String password) {
+    public User(Long id, String fullName, String document, String email, String password, BigDecimal balance, UserType userType) {
         this.id = id;
         this.fullName = fullName;
         this.document = document;
         this.email = email;
         this.password = password;
+        this.balance = balance;
+        this.userType = userType;
+    }
+
+    public User(UserDto userDto) {
+        this.fullName = userDto.fullName();
+        this.document = userDto.document();
+        this.email = userDto.email();
+        this.password = userDto.password();
+        this.balance = userDto.balance();
+        this.userType = userDto.userType();
     }
 
     public Long getId() {

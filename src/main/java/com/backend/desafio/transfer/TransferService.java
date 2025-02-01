@@ -1,5 +1,6 @@
 package com.backend.desafio.transfer;
 
+import com.backend.desafio.authorization.AuthorizationService;
 import com.backend.desafio.exception.ForbiddenTransferException;
 import com.backend.desafio.exception.InsufficientBalanceException;
 import com.backend.desafio.exception.InvalidIdException;
@@ -7,6 +8,7 @@ import com.backend.desafio.exception.InvalidPayerTypeException;
 import com.backend.desafio.notification.RabbitMqProducer;
 import com.backend.desafio.user.User;
 import com.backend.desafio.user.UserRepository;
+import com.backend.desafio.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -16,26 +18,15 @@ import java.math.BigDecimal;
 
 @Service
 public class TransferService {
-    private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
+    private final UserService userService;
     private final RabbitMqProducer producer;
 
     @Autowired
-    public TransferService(UserRepository userRepository, RabbitMqProducer producer) {
-        this.userRepository = userRepository;
+    public TransferService(AuthorizationService authorizationService, UserService userService, RabbitMqProducer producer) {
+        this.authorizationService = authorizationService;
+        this.userService = userService;
         this.producer = producer;
-    }
-
-    private boolean authorizeTransfer() {
-        try {
-            String uri = "https://util.devi.tools/api/v2/authorize";
-            RestTemplate restTemplate = new RestTemplate();
-            AuthorizeTransfer result = restTemplate.getForObject(uri, AuthorizeTransfer.class);
-
-            assert result != null;
-            return result.getData().getAuthorization();
-        } catch (RestClientException ex) {
-            return false;
-        }
     }
 
     private String generateNotificationMessage(BigDecimal value, String payerName) {
@@ -48,22 +39,17 @@ public class TransferService {
     public void transfer(BigDecimal value, Long payerId, Long payeeId) throws ForbiddenTransferException, InsufficientBalanceException, InvalidIdException, InvalidPayerTypeException {
         if (payerId.equals(payeeId)) throw new InvalidIdException("You can't transfer to yourself.");
 
-        User payer = userRepository.findById(payerId).orElse(null);
+        User payer = userService.findUserById(payerId);
         if (payer == null) throw new NullPointerException("Couldn't find a payer with id " + payerId + ".");
+        userService.validatePayer(payer, value);
 
-        if (payer.getUserType().getType().equalsIgnoreCase("SHOPKEEPER")) throw new InvalidPayerTypeException("A shopkeeper can't transfer money.");
-        if (payer.getBalance().compareTo(value) < 0) throw new InsufficientBalanceException("Your balance isn't enough for this transfer.");
-
-        User payee = userRepository.findById(payeeId).orElse(null);
+        User payee = userService.findUserById(payeeId);
         if (payee == null) throw new NullPointerException("Couldn't find a payee with id " + payeeId + ".");
 
-        if (authorizeTransfer()) {
-            userRepository.transfer(
-                    payerId,
-                    payeeId,
-                    payer.getBalance().subtract(value),
-                    payee.getBalance().add(value)
-            );
+        if (authorizationService.authorizeTransfer()) {
+            userService.updateBalance(payerId, payer.getBalance().subtract(value));
+            userService.updateBalance(payeeId, payee.getBalance().add(value));
+
             producer.produceMessage(generateNotificationMessage(value, payer.getFullName()));
         } else throw new ForbiddenTransferException("This transfer hasn't been authorized.");
     }

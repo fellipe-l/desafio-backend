@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
-    @Query(value = "UPDATE users SET balance = :payerNewBalance WHERE id = :payerId; UPDATE users SET balance = :payeeNewBalance WHERE id = :payeeId", nativeQuery = true)
+    @Query(value = "UPDATE users SET balance = :newBalance WHERE id = :id", nativeQuery = true)
     @Transactional
-    void transfer(@Param("payerId") Long payerId, @Param("payeeId") Long payeeId, @Param("payerNewBalance") BigDecimal payerNewBalance, @Param("payeeNewBalance") BigDecimal payeeNewBalance);
+    void updateBalance(@Param("id") Long id, @Param("newBalance") BigDecimal newBalance);
 }
