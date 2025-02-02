@@ -7,12 +7,9 @@ import com.backend.desafio.exception.InvalidIdException;
 import com.backend.desafio.exception.InvalidPayerTypeException;
 import com.backend.desafio.notification.RabbitMqProducer;
 import com.backend.desafio.user.User;
-import com.backend.desafio.user.UserRepository;
 import com.backend.desafio.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 
@@ -37,7 +34,7 @@ public class TransferService {
     }
 
     public void transfer(BigDecimal value, Long payerId, Long payeeId) throws ForbiddenTransferException, InsufficientBalanceException, InvalidIdException, InvalidPayerTypeException {
-        if (payerId.equals(payeeId)) throw new InvalidIdException("You can't transfer to yourself.");
+        if (payerId.equals(payeeId)) throw new InvalidIdException("An user can't transfer to itself.");
 
         User payer = userService.findUserById(payerId);
         if (payer == null) throw new NullPointerException("Couldn't find a payer with id " + payerId + ".");

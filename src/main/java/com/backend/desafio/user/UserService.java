@@ -24,7 +24,7 @@ public class UserService {
         userRepository.updateBalance(id, newBalance);
     }
 
-    public void validatePayer(User payer, BigDecimal value) throws InsufficientBalanceException, InvalidPayerTypeException{
+    public void validatePayer(User payer, BigDecimal value) throws InsufficientBalanceException, InvalidPayerTypeException {
         if (payer.getUserType().getType().equalsIgnoreCase("SHOPKEEPER")) throw new InvalidPayerTypeException("A shopkeeper can't transfer money.");
         if (payer.getBalance().compareTo(value) < 0) throw new InsufficientBalanceException("Your balance isn't enough for this transfer.");
     }
