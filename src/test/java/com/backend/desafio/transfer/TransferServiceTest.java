@@ -39,9 +39,9 @@ class TransferServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @DisplayName("Should transfer money from an user to another successfully")
+    @DisplayName("transfer should transfer money between two users successfully")
     @Test
-    void shouldTransferMoneyFromAnUserToAnotherSuccessfully() throws Exception {
+    void transfer_should_transfer_money_between_two_users_successfully() throws Exception {
         BigDecimal value = new BigDecimal("10.00");
         User payer = new User(
                 1L,
@@ -73,9 +73,9 @@ class TransferServiceTest {
         verify(producer, times(1)).produceMessage(anyString());
     }
 
-    @DisplayName("Should throw InvalidIdException when IDs are equal")
+    @DisplayName("transfer should throw InvalidIdException when IDs are equal")
     @Test
-    void shouldThrowInvalidIdExceptionWhenIdsAreEqual() {
+    void transfer_should_throw_InvalidIdException_when_ids_are_equal() {
         Exception thrown = Assertions.assertThrows(InvalidIdException.class, () -> {
             transferService.transfer(new BigDecimal(0), 1L, 1L);
         });
@@ -83,9 +83,9 @@ class TransferServiceTest {
         assertEquals("An user can't transfer to itself.", thrown.getMessage());
     }
 
-    @DisplayName("Should throw NullPointerException when payer is null")
+    @DisplayName("transfer should throw NullPointerException when payer is null")
     @Test
-    void shouldThrowNullPointerExceptionWhenPayerIsNull() {
+    void transfer_should_throw_NullPointerException_when_payer_is_null() {
         when(userService.findUserById(1L)).thenReturn(null);
         Exception thrown = Assertions.assertThrows(NullPointerException.class, () -> {
             transferService.transfer(new BigDecimal(0), 1L, 2L);
@@ -94,9 +94,9 @@ class TransferServiceTest {
         assertEquals("Couldn't find a payer with id " + 1L + ".", thrown.getMessage());
     }
 
-    @DisplayName("Should throw NullPointerException when payee is null")
+    @DisplayName("transfer should throw NullPointerException when payee is null")
     @Test
-    void shouldThrowNullPointerExceptionWhenPayeeIsNull() {
+    void transfer_should_throw_NullPointerException_when_payee_is_null() {
         User payer = new User(
                 1L,
                 "João",
@@ -116,9 +116,9 @@ class TransferServiceTest {
         assertEquals("Couldn't find a payee with id " + 2L + ".", thrown.getMessage());
     }
 
-    @DisplayName("Should throw ForbiddenTransferException when transfer is forbidden")
+    @DisplayName("transfer should throw ForbiddenTransferException when transfer is forbidden")
     @Test
-    void shouldThrowForbiddenTransferExceptionWhenTransferIsForbidden() {
+    void transfer_should_throw_ForbiddenTransferException_when_transfer_is_forbidden() {
         User payer = new User(
                 1L,
                 "João",
