@@ -35,9 +35,9 @@ class UserRepositoryTest {
         userTypeRepository.save(new UserType(null, "SHOPKEEPER"));
     }
 
-    @DisplayName("Should transfer money from an user to another successfully")
+    @DisplayName("updateBalance should update an user balance successfully")
     @Test
-    void shouldTransferMoneyFromAnUserToAnotherSuccessfully() {
+    void updateBalance_should_update_an_user_balance_successfully() {
         BigDecimal value = new BigDecimal("100");
         User user1 = createUser(new UserDto("João", "12345678901", "joao@email.com", "12345", new BigDecimal("5000.00"), new UserType(1L, "CUSTOMER")));
         User user2 = createUser(new UserDto("Maria", "12345678902", "maria@email.com", "54321", new BigDecimal("10000.00"), new UserType(1L, "CUSTOMER")));
