@@ -43,7 +43,7 @@ public class TransferService {
         User payee = userService.findUserById(payeeId);
         if (payee == null) throw new NullPointerException("Couldn't find a payee with id " + payeeId + ".");
 
-        if (authorizationService.authorizeTransfer()) {
+        if (authorizationService.authorizeTransfer(payerId, payeeId, value)) {
             userService.updateBalance(payerId, payer.getBalance().subtract(value));
             userService.updateBalance(payeeId, payee.getBalance().add(value));
 

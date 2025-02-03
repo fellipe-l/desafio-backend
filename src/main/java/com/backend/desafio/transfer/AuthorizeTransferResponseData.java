@@ -1,6 +1,6 @@
 package com.backend.desafio.transfer;
 
-public class AuthorizeTransferData {
+/*public class AuthorizeTransferData {
     private Boolean authorization;
 
     public AuthorizeTransferData() {}
@@ -23,4 +23,6 @@ public class AuthorizeTransferData {
                 "authorization=" + authorization +
                 '}';
     }
+}*/
+public record AuthorizeTransferResponseData(Boolean authorization) {
 }

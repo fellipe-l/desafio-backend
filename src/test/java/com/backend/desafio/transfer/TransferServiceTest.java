@@ -64,7 +64,7 @@ class TransferServiceTest {
 
         when(userService.findUserById(1L)).thenReturn(payer);
         when(userService.findUserById(2L)).thenReturn(payee);
-        when(authorizationService.authorizeTransfer()).thenReturn(true);
+        when(authorizationService.authorizeTransfer(1L, 2L, value)).thenReturn(true);
 
         transferService.transfer(value, 1L, 2L);
 
@@ -140,7 +140,7 @@ class TransferServiceTest {
 
         when(userService.findUserById(1L)).thenReturn(payer);
         when(userService.findUserById(2L)).thenReturn(payee);
-        when(authorizationService.authorizeTransfer()).thenReturn(false);
+        when(authorizationService.authorizeTransfer(1L, 2L, new BigDecimal("5.00"))).thenReturn(false);
 
         Exception thrown = Assertions.assertThrows(ForbiddenTransferException.class, () -> {
             transferService.transfer(new BigDecimal(0), 1L, 2L);
