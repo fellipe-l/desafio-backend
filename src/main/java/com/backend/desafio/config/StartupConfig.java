@@ -19,8 +19,8 @@ public class StartupConfig {
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (userTypeRepository.count() <= 0) {
-            userTypeRepository.save(new UserType(1L, "CUSTOMER"));
-            userTypeRepository.save(new UserType(2L, "SHOPKEEPER"));
+            userTypeRepository.save(new UserType(null, "CUSTOMER"));
+            userTypeRepository.save(new UserType(null, "SHOPKEEPER"));
         }
     }
 }

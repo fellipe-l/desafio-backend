@@ -1,0 +1,42 @@
+services:
+  app:
+    build: .
+    container_name: backend-desafio-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+  postgres:
+    image: postgres:17.2-alpine
+    container_name: backend-desafio-postgres
+    environment:
+      POSTGRES_DB: challenge
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: backend-desafio-rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+volumes:
+  postgres_data:
+  rabbitmq_data:
