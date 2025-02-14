@@ -1,0 +1,112 @@
+services:
+  app:
+    build:
+      context: ../.
+      dockerfile: docker/app/Dockerfile
+    container_name: backend-desafio-app
+    depends_on:
+      collector:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      OTEL_TRACES_SAMPLER: always_on
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_SERVICE_NAME: observability
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4317
+      OTEL_PROPAGATORS: tracecontext,baggage,
+    ports:
+      - "8080:8080"
+  collector:
+    build:
+      context: ../.
+      dockerfile: docker/collector/Dockerfile
+    container_name: backend-desafio-collector
+    depends_on:
+      loki:
+        condition: service_started
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    env_file:
+      ../.env
+  grafana:
+    image: grafana/grafana:11.5.1
+    container_name: backend-desafio-grafana
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    ports:
+      - "3000:3000"
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/local-config.yaml
+    container_name: backend-desafio-loki
+    ports:
+      - "3100:3100"
+  postgres:
+    image: postgres:17.2-alpine
+    container_name: backend-desafio-postgres
+    environment:
+      POSTGRES_DB: challenge
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-remote-write-receiver", "--web.enable-otlp-receiver"]
+    container_name: backend-desafio-prometheus
+    ports:
+      - "9090:9090"
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: backend-desafio-rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  redis:
+    image: redis:7.4-alpine
+    container_name: backend-desafio-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/var/lib/redis
+  tempo:
+    image: grafana/tempo:2.7.0
+    command: ["--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--multitenancy.enabled=false", "-config.file=/etc/tempo.yaml"]
+    container_name: backend-desafio-tempo
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
