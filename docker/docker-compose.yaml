@@ -7,13 +7,17 @@ services:
     depends_on:
       collector:
         condition: service_started
+      localstack:
+        condition: service_started
       postgres:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      SQS_ENDPOINT: ${SQS_ENDPOINT}
+      SQS_QUEUE_URL_PATH: ${SQS_QUEUE_URL_PATH}
       OTEL_TRACES_SAMPLER: always_on
       OTEL_TRACES_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
@@ -36,7 +40,7 @@ services:
       - "4317:4317"
       - "4318:4318"
     env_file:
-      ../.env
+      .env
   grafana:
     image: grafana/grafana:11.5.1
     container_name: backend-desafio-grafana
@@ -46,6 +50,21 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     ports:
       - "3000:3000"
+  localstack:
+    image: localstack/localstack:4.1.1
+    container_name: "backend-desafio-localstack"
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      - PERSISTENCE=1
+      - SERVICES=sqs
+      - SNAPSHOT_SAVE_STRATEGY=ON_SHUTDOWN
+      - SNAPSHOT_LOAD_STRATEGY=ON_STARTUP
+      - SQS_DISABLE_CLOUDWATCH_METRICS=1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./localstack:/etc/localstack/init/ready.d
   loki:
     image: grafana/loki:3.3.2
     command: -config.file=/etc/loki/local-config.yaml
@@ -73,19 +92,6 @@ services:
     container_name: backend-desafio-prometheus
     ports:
       - "9090:9090"
-  rabbitmq:
-    image: rabbitmq:4.0-management
-    container_name: backend-desafio-rabbitmq
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 5s
-      timeout: 30s
-      retries: 3
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
   redis:
     image: redis:7.4-alpine
     container_name: backend-desafio-redis
@@ -107,6 +113,7 @@ services:
     volumes:
       - ./tempo.yaml:/etc/tempo.yaml
 volumes:
+  localstack_data:
   postgres_data:
   rabbitmq_data:
   redis_data:

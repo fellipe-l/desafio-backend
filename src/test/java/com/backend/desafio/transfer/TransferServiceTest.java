@@ -3,7 +3,7 @@ package com.backend.desafio.transfer;
 import com.backend.desafio.authorization.AuthorizationService;
 import com.backend.desafio.exception.ForbiddenTransferException;
 import com.backend.desafio.exception.InvalidIdException;
-import com.backend.desafio.notification.RabbitMqProducer;
+import com.backend.desafio.notification.QueueProducer;
 import com.backend.desafio.user.User;
 import com.backend.desafio.user.UserService;
 import com.backend.desafio.user.UserType;
@@ -29,7 +29,7 @@ class TransferServiceTest {
     @Mock
     private UserService userService;
     @Mock
-    private RabbitMqProducer producer;
+    private QueueProducer producer;
     @Autowired
     @InjectMocks
     private TransferService transferService;

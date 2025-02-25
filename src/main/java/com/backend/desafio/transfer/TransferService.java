@@ -5,7 +5,7 @@ import com.backend.desafio.exception.ForbiddenTransferException;
 import com.backend.desafio.exception.InsufficientBalanceException;
 import com.backend.desafio.exception.InvalidIdException;
 import com.backend.desafio.exception.InvalidPayerTypeException;
-import com.backend.desafio.notification.RabbitMqProducer;
+import com.backend.desafio.notification.QueueProducer;
 import com.backend.desafio.user.User;
 import com.backend.desafio.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +17,10 @@ import java.math.BigDecimal;
 public class TransferService {
     private final AuthorizationService authorizationService;
     private final UserService userService;
-    private final RabbitMqProducer producer;
+    private final QueueProducer producer;
 
     @Autowired
-    public TransferService(AuthorizationService authorizationService, UserService userService, RabbitMqProducer producer) {
+    public TransferService(AuthorizationService authorizationService, UserService userService, QueueProducer producer) {
         this.authorizationService = authorizationService;
         this.userService = userService;
         this.producer = producer;
